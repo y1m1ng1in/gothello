@@ -23,8 +23,7 @@ while True:
   result = b.try_move(move)
   if result == ILLEGAL_MOVE:
     raise Exception("illegal move")
-  if result == GAME_OVER:
-    raise Exception("Game over")
+  
   print("me:", move)
 
   try:
@@ -39,19 +38,20 @@ while True:
 
   print(b)
 
+  if client.winner:
+    print("winner: ", client.winner)
+    break
+
   cont, move = client.get_move()
   print("opp:", move)
 
-  if cont and move == "pass":
-    print("me: pass to end game")
-    client.make_move("pass")
+  if not cont:
+    print("winner: ", client.winner)
     break
-  else:
-    if not cont:
-      break
-    move = Move.parse_string(move)
-    b.try_move(move)
-    if result == ILLEGAL_MOVE:
-      raise Exception("illegal move when receiving from server")
-    if result == GAME_OVER:
-      raise Exception("Game over when receiving from server")
+  move = Move.parse_string(move)
+  b.try_move(move)
+  if result == ILLEGAL_MOVE:
+    raise Exception("illegal move when receiving from server")
+  if result == GAME_OVER:
+    raise Exception("Game over when receiving from server")
+

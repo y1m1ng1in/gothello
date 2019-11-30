@@ -18,7 +18,8 @@ class Gothelo:
     print("*** game start ***\n" + str(self.board))
     while(True):
       if self.side == "black":
-        self.__make_my_move()
+        if self.__make_my_move():
+          break
         print(self.board)
         if self.__get_move():
           break
@@ -27,12 +28,17 @@ class Gothelo:
         if self.__get_move():
           break
         print(self.board)
-        self.__make_my_move()
+        if self.__make_my_move():
+          break
         print(self.board)
       else:
         raise Exception("error side")
 
   def __make_my_move(self):
+    if self.client.winner:
+      print("winner: ", self.client.winner)
+      return True
+
     move = self.board.decision()
     if not move:
       move = Move(0, 0, is_pass=True)
@@ -52,7 +58,13 @@ class Gothelo:
         print("me: made illegal move, passing")
         self.client.make_move("pass")
 
+    return False
+
   def __get_move(self):
+    if self.client.winner:
+      print("winner: ", self.client.winner)
+      return False
+
     cont, move = self.client.get_move()
     print("opp: ", move)
 
@@ -72,7 +84,7 @@ class Gothelo:
 
 client = client = gthclient.GthClient("black", "barton.cs.pdx.edu", 0)
 
-method = Minimax(depth=6, prune=True)
+method = Minimax(depth=3, prune=True)
 
 game = Gothelo(method, client, side="black")
 game.play()

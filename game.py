@@ -72,7 +72,7 @@ class Gothelo:
 
 client = client = gthclient.GthClient("black", "barton.cs.pdx.edu", 0)
 
-method = Minimax(depth=3)
+method = Minimax(depth=6, prune=True)
 
 game = Gothelo(method, client, side="black")
 game.play()

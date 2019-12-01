@@ -17,14 +17,17 @@ class TerminationException(Exception):
 
 class Minimax(Board):
 
-  def __init__(self, depth=3, prune=False, print_leaves=False, 
-               max_visited=10000, iter_deepening=False):
+  def __init__(self, depth=3, prune=False, 
+               max_visited=10000, iter_deepening=False, 
+               print_leaves=False, print_stats=False):
     super().__init__()
     self.depth = depth
     self.prune = prune
     self.alpha = None
     self.beta = None
+
     self.print_leaves = print_leaves
+    self.print_stats = print_stats
 
     # set alpha and beta to some unreachable value temporarily
     if self.prune: 
@@ -128,9 +131,13 @@ class Minimax(Board):
           assert last_depth_move
           depth += 1  # adjust for output message below
           move = last_depth_move
-      print("current depth:", depth-1, " visited:", self.nvisited)
+          
+      if self.print_stats:
+        print("current depth:", depth-1, " visited:", self.nvisited)
 
-    print("visited ", self.nvisited)
+    if self.print_stats:
+      print("visited ", self.nvisited)
+
     return move
 
   def __alpha_beta_max_value(self, board, depth):

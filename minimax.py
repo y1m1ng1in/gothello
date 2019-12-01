@@ -136,8 +136,11 @@ class Minimax(Board):
   def __alpha_beta_max_value(self, board, depth):
     self.nvisited += 1  # increment visisted node
     if self.nvisited >= self.max_visited:
+      # terminate searching when maximum number of node visited has been reached
       if self.iter_deepening:
-        raise TerminationException()
+        raise TerminationException(
+          code=ITER_DEEPENING_EXCEPTION, 
+          msg="iterative deepening resource exhausted")
 
     if depth <= 0:
       if self.print_leaves:
@@ -148,8 +151,9 @@ class Minimax(Board):
     if val:
       return (val, move)
 
+    # generate all possible moves
     moves = board.gen_moves()
-    if not moves:
+    if not moves: # no possible move currently, return board's evaluated value
       if self.print_leaves:
         print("depth at 0:\n" + str(board))
       return board.evaluate(), None
@@ -158,16 +162,18 @@ class Minimax(Board):
     move_candidates = []
 
     for m in moves:
-      b = self.__board_after_moving(board, m)
-      v_child, _ = self.__alpha_beta_min_value(b, depth - 1)
+      b = self.__board_after_moving(board, m) # generate new board after move -- m
+      v_child, _ = self.__alpha_beta_min_value(b, depth - 1)  # search recursively
       
       if v_child > v:
+        # update maximum value, when child's value is larger
         v = v_child
         move_candidates = [m]
-      elif v_child == v:
+      elif v_child == v:  
+        # if child's value is same as current maximum value, append it to the move candidate list
         move_candidates.append(m)
       
-      if v > self.beta: # > or >=
+      if v > self.beta: # use > instead of >= to obtain more diversity of move candidates
         if move_candidates:
           pick_move = random.randint(0, len(move_candidates) - 1)
           return v, move_candidates[pick_move]
@@ -177,14 +183,19 @@ class Minimax(Board):
       self.alpha = max(self.alpha, v)
     
     assert move_candidates
-    pick_move = random.randint(0, len(move_candidates) - 1)
+
+    # randomly pick a move from all possible move candidates
+    pick_move = random.randint(0, len(move_candidates) - 1) 
     return v, move_candidates[pick_move]
 
   def __alpha_beta_min_value(self, board, depth):
     self.nvisited += 1  # increment visisted node
     if self.nvisited >= self.max_visited:
+      # terminate searching when maximum number of node visited has been reached
       if self.iter_deepening:
-        raise TerminationException()
+        raise TerminationException(
+          code=ITER_DEEPENING_EXCEPTION,
+          msg="iterative deepening resource exhausted")
 
     if depth <= 0:
       if self.print_leaves:
@@ -214,7 +225,7 @@ class Minimax(Board):
       elif v_child == v:
         move_candidates.append(m)
 
-      if v < self.alpha:  # <= or <
+      if v < self.alpha:  # use > instead of >= to obtain more diversity of move candidates
         if move_candidates:
           pick_move = random.randint(0, len(move_candidates) - 1)
           assert pick_move < len(move_candidates) and pick_move >= 0

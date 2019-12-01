@@ -79,8 +79,8 @@ class Minimax(Board):
     return max(values)
 
   def alpha_beta_minimax(self):
-    _, m = self.__alpha_beta_max_value(self, self.depth)
-    return m
+    _, move = self.__alpha_beta_max_value(self, self.depth)
+    return move
 
   def __alpha_beta_max_value(self, board, depth):
     if depth <= 0:
@@ -92,26 +92,23 @@ class Minimax(Board):
     if val:
       return (val, move)
 
-    v = -999999
-    to_move = None
-
     moves = board.gen_moves()
     if not moves:
       if self.print_leaves:
         print("depth at 0:\n" + str(board))
       return board.evaluate(), None
 
+    v = -999999
     move_candidates = []
 
     for m in moves:
       b = self.__board_after_moving(board, m)
-      child_val, _ = self.__alpha_beta_min_value(b, depth - 1)
+      v_child, _ = self.__alpha_beta_min_value(b, depth - 1)
       
-      if child_val > v:
-        to_move = m
-        v = child_val
-        move_candidates = [to_move]
-      elif child_val == v:
+      if v_child > v:
+        v = v_child
+        move_candidates = [m]
+      elif v_child == v:
         move_candidates.append(m)
       
       if v > self.beta: # > or >=
@@ -123,7 +120,7 @@ class Minimax(Board):
       
       self.alpha = max(self.alpha, v)
     
-    assert to_move and move_candidates
+    assert move_candidates
     pick_move = random.randint(0, len(move_candidates) - 1)
     return v, move_candidates[pick_move]
 
@@ -137,26 +134,23 @@ class Minimax(Board):
     if val:
       return (val, move)
 
-    v = 999999
-    to_move = None 
-
     moves = board.gen_moves()
     if not moves:
       if self.print_leaves:
         print("depth at 0:\n" + str(board))
       return board.evaluate(), None
 
+    v = 999999
     move_candidates = []
 
     for m in moves:
       b = self.__board_after_moving(board, m)
-      child_val, _ = self.__alpha_beta_max_value(b, depth - 1)
+      v_child, _ = self.__alpha_beta_max_value(b, depth - 1)
 
-      if child_val < v:
-        to_move = m
-        v = child_val
-        move_candidates = [to_move]
-      elif child_val == v:
+      if v_child < v:
+        v = v_child
+        move_candidates = [m]
+      elif v_child == v:
         move_candidates.append(m)
 
       if v < self.alpha:  # <= or <
@@ -169,7 +163,7 @@ class Minimax(Board):
 
       self.beta = min(self.beta, v)
     
-    assert to_move and move_candidates
+    assert move_candidates
     pick_move = random.randint(0, len(move_candidates) - 1)
     return v, move_candidates[pick_move]
   

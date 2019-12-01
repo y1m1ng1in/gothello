@@ -4,18 +4,41 @@ import random
 from board import (Board, Move, ILLEGAL_MOVE, CONTINUE, 
   GAME_OVER, PLAYER_BLACK, PLAYER_WHITE)
 
+ITER_DEEPENING_EXCEPTION = 1
+
+class TerminationException(Exception):
+
+  def __init__(self, 
+               code=ITER_DEEPENING_EXCEPTION, 
+               msg="iterative deepening resource exhausted"):
+    self.code = code
+    self.msg = msg
+
+
 class Minimax(Board):
 
-  def __init__(self, depth=3, prune=False, print_leaves=False):
+  def __init__(self, depth=3, prune=False, print_leaves=False, 
+               max_visited=10000, iter_deepening=False):
     super().__init__()
     self.depth = depth
     self.prune = prune
     self.alpha = None
     self.beta = None
-    if self.prune: # set alpha and beta to some unreachable value temporarily
+    self.print_leaves = print_leaves
+
+    # set alpha and beta to some unreachable value temporarily
+    if self.prune: 
       self.alpha = -999999 
       self.beta = 999999
-    self.print_leaves = print_leaves
+    
+    # test-purpse -- how many states have been visited
+    self.nvisited = 0 
+  
+    # whether search by iterative deepening
+    self.iter_deepening = iter_deepening  
+  
+    # upper bound of visiting node for iterative deepening
+    self.max_visited = max_visited  
 
   def evaluate(self):
     score = 0
@@ -28,6 +51,8 @@ class Minimax(Board):
     return score
 
   def decision(self):
+    if self.prune and self.iter_deepening:
+      return self.alpha_beta_minimax_iter_deepening()
     if self.prune:
       return self.alpha_beta_minimax()
     return self.minimax()
@@ -78,11 +103,42 @@ class Minimax(Board):
       values.append(self.__min_value(b, depth - 1))
     return max(values)
 
-  def alpha_beta_minimax(self):
-    _, move = self.__alpha_beta_max_value(self, self.depth)
+  def alpha_beta_minimax(self, depth=None):
+    if depth:
+      _, move = self.__alpha_beta_max_value(self, depth)
+    else:
+      _, move = self.__alpha_beta_max_value(self, self.depth)
+    return move
+
+  def alpha_beta_minimax_iter_deepening(self):
+    self.nvisited = 0
+    depth = 1
+    last_depth_move = None
+
+    # at most 25 depth, since there are only 25 stones on board
+    while self.nvisited < self.max_visited and depth <= 25:
+      try:
+        move = self.alpha_beta_minimax(depth=depth)
+        last_depth_move = move
+        depth += 1
+        if not move:
+          break
+      except TerminationException as e:
+        if e.code == ITER_DEEPENING_EXCEPTION:
+          assert last_depth_move
+          depth += 1  # adjust for output message below
+          move = last_depth_move
+      print("current depth:", depth-1, " visited:", self.nvisited)
+
+    print("visited ", self.nvisited)
     return move
 
   def __alpha_beta_max_value(self, board, depth):
+    self.nvisited += 1  # increment visisted node
+    if self.nvisited >= self.max_visited:
+      if self.iter_deepening:
+        raise TerminationException()
+
     if depth <= 0:
       if self.print_leaves:
         print("depth at 0:\n" + str(board))
@@ -125,6 +181,11 @@ class Minimax(Board):
     return v, move_candidates[pick_move]
 
   def __alpha_beta_min_value(self, board, depth):
+    self.nvisited += 1  # increment visisted node
+    if self.nvisited >= self.max_visited:
+      if self.iter_deepening:
+        raise TerminationException()
+
     if depth <= 0:
       if self.print_leaves:
         print("depth at 0:\n" + str(board))

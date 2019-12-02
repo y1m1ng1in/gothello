@@ -19,6 +19,7 @@ class Minimax(Board):
 
   def __init__(self, depth=3, prune=False, 
                max_visited=10000, iter_deepening=False, 
+               move_ordering=False,
                print_leaves=False, print_stats=False):
     super().__init__()
     self.depth = depth
@@ -36,6 +37,8 @@ class Minimax(Board):
     
     # test-purpse -- how many states have been visited
     self.nvisited = 0 
+
+    self.reorder_move = move_ordering
   
     # whether search by iterative deepening
     self.iter_deepening = iter_deepening  
@@ -52,6 +55,40 @@ class Minimax(Board):
         elif stone == PLAYER_WHITE:
           score -= 1
     return score
+
+  def move_ordering(self, moves):
+    if not moves: # no possible moves
+      return None
+
+    to_pop = []
+    for i in range(len(moves)):
+      if not moves[i].is_pass:
+        x, y = moves[i].x, moves[i].y
+        assert x >= 0 and x <= 4 and y >= 0 and y <= 4
+        if x > 0:
+          if self.board[x - 1][y] == self.opponent(self.to_move):
+            to_pop.append(i)
+            continue 
+        if x < 4:
+          if self.board[x + 1][y] == self.opponent(self.to_move):
+            to_pop.append(i)
+            continue
+        if y > 0:
+          if self.board[x][y - 1] == self.opponent(self.to_move):
+            to_pop.append(i)
+            continue
+        if y < 4:
+          if self.board[x][y + 1] == self.opponent(self.to_move):
+            to_pop.append(i)
+            continue
+          
+    new_moves = []
+    for i in to_pop:
+      new_moves.append(moves[i])
+    for i in sorted(to_pop, reverse=True):
+      del moves[i]
+    new_moves += moves
+    return new_moves
 
   def decision(self):
     if self.prune and self.iter_deepening:
@@ -160,6 +197,9 @@ class Minimax(Board):
 
     # generate all possible moves
     moves = board.gen_moves()
+    if self.reorder_move:
+      moves = board.move_ordering(moves)
+
     if not moves: # no possible move currently, return board's evaluated value
       if self.print_leaves:
         print("depth at 0:\n" + str(board))
@@ -180,7 +220,7 @@ class Minimax(Board):
         # if child's value is same as current maximum value, append it to the move candidate list
         move_candidates.append(m)
       
-      if v > self.beta: # use > instead of >= to obtain more diversity of move candidates
+      if v >= self.beta: # use > instead of >= to obtain more diversity of move candidates
         if move_candidates:
           pick_move = random.randint(0, len(move_candidates) - 1)
           return v, move_candidates[pick_move]
@@ -214,6 +254,9 @@ class Minimax(Board):
       return (val, move)
 
     moves = board.gen_moves()
+    if self.reorder_move:
+      moves = board.move_ordering(moves)
+
     if not moves:
       if self.print_leaves:
         print("depth at 0:\n" + str(board))
@@ -232,7 +275,7 @@ class Minimax(Board):
       elif v_child == v:
         move_candidates.append(m)
 
-      if v < self.alpha:  # use > instead of >= to obtain more diversity of move candidates
+      if v <= self.alpha:  # use > instead of >= to obtain more diversity of move candidates
         if move_candidates:
           pick_move = random.randint(0, len(move_candidates) - 1)
           assert pick_move < len(move_candidates) and pick_move >= 0

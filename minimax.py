@@ -81,7 +81,7 @@ class Minimax(Board):
           if self.board[x][y + 1] == self.opponent(self.to_move):
             to_pop.append(i)
             continue
-          
+
     new_moves = []
     for i in to_pop:
       new_moves.append(moves[i])
@@ -220,7 +220,7 @@ class Minimax(Board):
         # if child's value is same as current maximum value, append it to the move candidate list
         move_candidates.append(m)
       
-      if v >= self.beta: # use > instead of >= to obtain more diversity of move candidates
+      if v >= self.beta:
         if move_candidates:
           pick_move = random.randint(0, len(move_candidates) - 1)
           return v, move_candidates[pick_move]
@@ -275,7 +275,7 @@ class Minimax(Board):
       elif v_child == v:
         move_candidates.append(m)
 
-      if v <= self.alpha:  # use > instead of >= to obtain more diversity of move candidates
+      if v <= self.alpha: 
         if move_candidates:
           pick_move = random.randint(0, len(move_candidates) - 1)
           assert pick_move < len(move_candidates) and pick_move >= 0

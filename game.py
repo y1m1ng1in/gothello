@@ -87,6 +87,7 @@ client = client = gthclient.GthClient("black", "barton.cs.pdx.edu", 0)
 method = Minimax(depth=3, 
                  prune=True, 
                  move_ordering=True,
+                 eval_method="connected",
                  iter_deepening=True, 
                  max_visited=5000)
 

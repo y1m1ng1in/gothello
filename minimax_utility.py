@@ -3,7 +3,12 @@ from board import (Board, Move, ILLEGAL_MOVE, CONTINUE,
 
 class MinimaxUtility(Board):
 
-  def __init__(self, eval_method="number"):
+  def __init__(self, 
+               eval_method="number", 
+               scoring={'stone': 1,
+                        'black connection': 1,
+                        'white connection': 2}
+              ):
     super().__init__()
 
     # the method for evaluating a board
@@ -13,12 +18,23 @@ class MinimaxUtility(Board):
     self.connected_black = set()
     self.connected_white = set()
 
+    # value for scoring board
+    self.eval = {
+      'stone': scoring['stone'],
+      'black connection': scoring['black connection'],
+      'white connection': scoring['white connection']
+    }
+
   def evaluate(self):
     if self.evaluate_method == "number":
       return self.__evaluate_number()
+
     elif self.evaluate_method == "connected":
       nc_black, nc_white = self.__evaluate_connected()
-      return self.__evaluate_number() * 4 + 3 * nc_black - 1 * nc_white 
+      return (self.__evaluate_number() * self.eval['stone'] 
+              + nc_black * self.eval['black connection'] 
+              - nc_white * self.eval['white connection']) 
+
     else:
       raise Exception("unexpected evaluate method in minimax")
 
@@ -33,8 +49,29 @@ class MinimaxUtility(Board):
     return score
 
   def __evaluate_connected(self): 
-    # XXX should evalueate maximum connected stones rather than total number XXX
-    return len(self.connected_black), len(self.connected_white)
+    #return len(self.connected_black), len(self.connected_white)
+    nblack = self.__count_maximum_connected_group(self.connected_black, PLAYER_BLACK)
+    nwhite = self.__count_maximum_connected_group(self.connected_white, PLAYER_WHITE) 
+    return nblack, nwhite
+
+  def __count_maximum_connected_group(self, stone_set, side):
+    coords = list(stone_set)
+    coords.sort(key=lambda x: x[0])
+    i = 0
+    maximum = 0
+    while i < len(coords):
+      count = 0
+      scratch = self.scratch_board()
+      self.flood(scratch, side, coords[i][0], coords[i][1])
+      i += 1
+      for x in range(5):
+        for y in range(5):
+          if scratch[x][y]:
+            count += 1
+      maximum = max(maximum, count)
+      #while scratch[coords[i][0]][coords[i][1]] and i < len(coords):
+      #  i += 1
+    return maximum
 
   def update_connected_stones(self):  
     # update connected stones every time after try_move(), 
@@ -74,8 +111,8 @@ class MinimaxUtility(Board):
         elif self.evaluate_method == "connected":
           if self.__is_connected(moves[i]):
             to_pop_connected.append(i)
-          elif self.__around_stone(x, y, PLAYER_WHITE):
-            to_pop.append(i)
+          #elif self.__around_stone(x, y, PLAYER_WHITE):
+          #  to_pop.append(i)
         else:
           raise Exception("unexpected evaluate methode in minimax")
 

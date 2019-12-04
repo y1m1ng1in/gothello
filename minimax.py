@@ -21,11 +21,21 @@ class TerminationException(Exception):
 
 class Minimax(MinimaxUtility):
 
-  def __init__(self, depth=3, prune=False, 
-               max_visited=10000, iter_deepening=False, 
-               move_ordering=False, eval_method="number",
-               print_leaves=False, print_stats=False):
-    super().__init__(eval_method=eval_method)
+  def __init__(self, 
+               depth=3, 
+               prune=False, 
+               max_visited=10000, 
+               iter_deepening=False, 
+               move_ordering=False, 
+               eval_method="number",
+               scoring={
+                 'stone': 1,
+                 'black connection': 1,
+                 'white connection': 2
+               },
+               print_leaves=False, 
+               print_stats=False):
+    super().__init__(eval_method=eval_method, scoring=scoring)
     self.depth = depth
     self.prune = prune
     self.alpha = None

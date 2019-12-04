@@ -7,8 +7,9 @@ class MinimaxUtility(Board):
                eval_method="number", 
                scoring={'stone': 1,
                         'black connection': 1,
-                        'white connection': 2}
-              ):
+                        'white connection': 2,
+                        'black eye': 3,
+                        'white eye': 3}):
     super().__init__()
 
     # the method for evaluating a board
@@ -19,21 +20,35 @@ class MinimaxUtility(Board):
     self.connected_white = set()
 
     # value for scoring board
-    self.eval = {
-      'stone': scoring['stone'],
-      'black connection': scoring['black connection'],
-      'white connection': scoring['white connection']
-    }
+    self.eval = scoring
 
   def evaluate(self):
-    if self.evaluate_method == "number":
+    def number():
       return self.__evaluate_number()
-
-    elif self.evaluate_method == "connected":
+    
+    def connected():
       nc_black, nc_white = self.__evaluate_connected()
       return (self.__evaluate_number() * self.eval['stone'] 
               + nc_black * self.eval['black connection'] 
               - nc_white * self.eval['white connection']) 
+    
+    def eyes():
+      ne_black, ne_white = self.__evaluate_eye()
+      return (self.__evaluate_number() * self.eval['stone'] 
+              + ne_black * self.eval['black eye'] 
+              - ne_white * self.eval['white eye'])  
+
+    if self.evaluate_method == "number":
+      return number()
+
+    elif self.evaluate_method == "connected":
+      return number() + connected()
+
+    elif self.evaluate_method == "eye":
+      return number() + eyes()
+
+    elif self.evaluate_method == "connected eye":
+      return number() + connected() + eyes()
 
     else:
       raise Exception("unexpected evaluate method in minimax")
@@ -49,7 +64,6 @@ class MinimaxUtility(Board):
     return score
 
   def __evaluate_connected(self): 
-    #return len(self.connected_black), len(self.connected_white)
     nblack = self.__count_maximum_connected_group(self.connected_black, PLAYER_BLACK)
     nwhite = self.__count_maximum_connected_group(self.connected_white, PLAYER_WHITE) 
     return nblack, nwhite
@@ -69,9 +83,34 @@ class MinimaxUtility(Board):
           if scratch[x][y]:
             count += 1
       maximum = max(maximum, count)
-      #while scratch[coords[i][0]][coords[i][1]] and i < len(coords):
-      #  i += 1
     return maximum
+
+  def __evaluate_eye(self):
+    nblack = self.__count_eye(PLAYER_BLACK)
+    nwhite = self.__count_eye(PLAYER_WHITE)
+    return len(nblack), len(nwhite)
+
+  def __count_eye(self, side):
+    eye_coords = set()
+
+    def check(x, y):
+      if x < 0 or x > 4 or y < 0 or y > 4:
+        return 0
+      if self.board[x][y] == side:
+        return 1
+      else:
+        return -1
+
+    for i in range(5):
+      for j in range(5):
+        if self.board[i][j] == 0:
+          if (check(i - 1, j) != -1
+              and check(i + 1, j) != -1
+              and check(i, j - 1) != -1
+              and check(i, j + 1) != -1):
+            eye_coords.add((i, j))
+    
+    return eye_coords
 
   def update_connected_stones(self):  
     # update connected stones every time after try_move(), 
@@ -101,18 +140,21 @@ class MinimaxUtility(Board):
 
     to_pop = []
     to_pop_connected = []
+
     for i in range(len(moves)):
       if not moves[i].is_pass:
         x, y = moves[i].x, moves[i].y
         assert x >= 0 and x <= 4 and y >= 0 and y <= 4
+
         if self.evaluate_method == "number":
           if self.__around_stone(x, y, PLAYER_WHITE):
             to_pop.append(i)
-        elif self.evaluate_method == "connected":
+
+        elif (self.evaluate_method == "connected" 
+              or self.evaluate_method == "connected eye"):
           if self.__is_connected(moves[i]):
             to_pop_connected.append(i)
-          #elif self.__around_stone(x, y, PLAYER_WHITE):
-          #  to_pop.append(i)
+
         else:
           raise Exception("unexpected evaluate methode in minimax")
 

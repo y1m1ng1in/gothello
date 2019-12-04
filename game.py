@@ -85,18 +85,20 @@ class Gothelo:
 client = client = gthclient.GthClient("black", "barton.cs.pdx.edu", 0)
 
 scoring = {
-            'stone': 1,
+            'stone': 5,
             'black connection': 1,
-            'white connection': 2
+            'white connection': 1,
+            'black eye': 1,
+            'white eye': 1
           }
 
 method = Minimax(depth=3, 
                  prune=True, 
                  move_ordering=True,
-                 eval_method="connected",
+                 eval_method="connected eye",
                  scoring=scoring,
                  iter_deepening=True, 
-                 max_visited=1000)
+                 max_visited=3000)
 
 game = Gothelo(method, client, side="black")
 game.play()

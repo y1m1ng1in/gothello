@@ -5,11 +5,22 @@ class MinimaxUtility(Board):
 
   def __init__(self, 
                eval_method="number", 
-               scoring={'stone': 1,
-                        'black connection': 1,
-                        'white connection': 2,
-                        'black eye': 3,
-                        'white eye': 3}):
+               scoring={
+                 'stone': 1,
+                 'black connection': 1,
+                 'white connection': 2,
+                 'black eye': 3,
+                 'white eye': 3
+               },
+               dynamic_eval=False,
+               auto_adjust_scoring={
+                 'stone': 1,
+                 'black connection': 3,
+                 'white connection': 3,
+                 'black eye': 1,
+                 'white eye': 1,
+                 'serial': 10
+               }):
     super().__init__()
 
     # the method for evaluating a board
@@ -21,22 +32,32 @@ class MinimaxUtility(Board):
 
     # value for scoring board
     self.eval = scoring
+    self.dynamic_eval = dynamic_eval
+    self.eval_adjusted = auto_adjust_scoring
 
-  def evaluate(self):
+  def evaluate(self, adjust=False):
+    if self.dynamic_eval:
+      if adjust:
+        evaluation = self.eval_adjusted
+      else:
+        evaluation = self.eval
+    else:
+      evaluation = self.eval
+
     def number():
       return self.__evaluate_number()
     
     def connected():
       nc_black, nc_white = self.__evaluate_connected()
-      return (self.__evaluate_number() * self.eval['stone'] 
-              + nc_black * self.eval['black connection'] 
-              - nc_white * self.eval['white connection']) 
+      return (self.__evaluate_number() * evaluation['stone'] 
+              + nc_black * evaluation['black connection'] 
+              - nc_white * evaluation['white connection']) 
     
     def eyes():
       ne_black, ne_white = self.__evaluate_eye()
-      return (self.__evaluate_number() * self.eval['stone'] 
-              + ne_black * self.eval['black eye'] 
-              - ne_white * self.eval['white eye'])  
+      return (self.__evaluate_number() * evaluation['stone'] 
+              + ne_black * evaluation['black eye'] 
+              - ne_white * evaluation['white eye'])  
 
     if self.evaluate_method == "number":
       return number()

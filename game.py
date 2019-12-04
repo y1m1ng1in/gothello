@@ -85,12 +85,21 @@ class Gothelo:
 client = gthclient.GthClient("black", "barton.cs.pdx.edu", 0)
 
 scoring = {
-            'stone': 5,
+            'stone': 10,
             'black connection': 1,
             'white connection': 1,
-            'black eye': 3,
-            'white eye': 3
+            'black eye': 4,
+            'white eye': 4
           }
+
+auto_adjust_scoring = {
+                        'stone': 10,
+                        'black connection': 0,
+                        'white connection': 0,
+                        'black eye': 0,
+                        'white eye': 0,
+                        'serial': 8
+                      }
 
 method = Minimax(depth=3, 
                  prune=True, 
@@ -98,6 +107,8 @@ method = Minimax(depth=3,
                  selective_search=True,
                  eval_method="connected eye",
                  scoring=scoring,
+                 dynamic_eval=True,
+                 auto_adjust_scoring=auto_adjust_scoring,
                  iter_deepening=True, 
                  max_visited=3000)
 

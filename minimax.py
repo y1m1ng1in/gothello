@@ -34,9 +34,22 @@ class Minimax(MinimaxUtility):
                  'black connection': 1,
                  'white connection': 2
                },
+               dynamic_eval=False,
+               auto_adjust_scoring={
+                 'stone': 1,
+                 'black connection': 3,
+                 'white connection': 3,
+                 'black eye': 1,
+                 'white eye': 1,
+                 'serial': 10
+               },
                print_leaves=False, 
                print_stats=False):
-    super().__init__(eval_method=eval_method, scoring=scoring)
+
+    super().__init__(eval_method=eval_method, 
+                     scoring=scoring, 
+                     dynamic_eval=dynamic_eval,
+                     auto_adjust_scoring=auto_adjust_scoring)
     self.depth = depth
     self.prune = prune
     self.alpha = None
@@ -165,11 +178,9 @@ class Minimax(MinimaxUtility):
     if depth <= 0:
       if self.print_leaves:
         print("depth at 0:\n" + str(board))
+      if self.serial >= self.eval_adjusted['serial']:
+        return board.evaluate(adjust=True), None
       return board.evaluate(), None
-
-    val, move = self.__terminal_status(board)
-    if val:
-      return (val, move)
 
     # generate all possible moves
     moves = board.gen_moves()
@@ -181,6 +192,8 @@ class Minimax(MinimaxUtility):
     if not moves: # no possible move currently, return board's evaluated value
       if self.print_leaves:
         print("depth at 0:\n" + str(board))
+      if self.serial >= self.eval_adjusted['serial']:
+        return board.evaluate(adjust=True), None
       return board.evaluate(), None
 
     v = -999999
@@ -225,21 +238,21 @@ class Minimax(MinimaxUtility):
     if depth <= 0:
       if self.print_leaves:
         print("depth at 0:\n" + str(board))
+      if self.serial >= self.eval_adjusted['serial']:
+        return board.evaluate(adjust=True), None
       return board.evaluate(), None
-
-    val, move = self.__terminal_status(board)
-    if val:
-      return (val, move)
 
     moves = board.gen_moves()
     if self.reorder_move:
       moves = board.move_ordering(moves)
     if self.selective_search:
       moves = board.avoid_opponent_eye(moves)
-      
+
     if not moves:
       if self.print_leaves:
         print("depth at 0:\n" + str(board))
+      if self.serial >= self.eval_adjusted['serial']:
+        return board.evaluate(adjust=True), None
       return board.evaluate(), None
 
     v = 999999

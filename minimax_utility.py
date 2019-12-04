@@ -173,6 +173,40 @@ class MinimaxUtility(Board):
 
     return new_moves
 
+  def avoid_opponent_eye(self, moves):
+    if not moves:
+      return []
+    return [move for move in moves if not self.__detect_opponent_eye(move)]
+
+  def __detect_opponent_eye(self, move):
+    assert not move.is_pass 
+
+    count = 0
+    x, y = move.x, move.y
+
+    assert (self.board[x][y] == 0 
+            and x >= 0 
+            and x <= 4 
+            and y >= 0 
+            and y <= 4)
+            
+    if x == 0 or x == 4:
+      count += 1
+    if y == 0 or y == 4:
+      count += 1
+    if x > 0 and self.board[x - 1][y] == PLAYER_WHITE:
+      count += 1
+    if x < 4 and self.board[x + 1][y] == PLAYER_WHITE:
+      count += 1
+    if y > 0 and self.board[x][y - 1] == PLAYER_WHITE:
+      count += 1
+    if y < 4 and self.board[x][y + 1] == PLAYER_WHITE:
+      count += 1
+
+    if count >= 3:
+      return True
+    return False
+
   def __around_stone(self, x, y, side):
     # decide whether there exists stone with color "side" around (x, y)
     assert x >= 0 and x <= 4 and y >= 0 and y <= 4

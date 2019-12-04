@@ -84,8 +84,8 @@ class GthClient(object):
         self.fsock_in = None
         self.fsock_out = None
 
-        # Move number.
-        self.serial = 0
+        # Current move number.
+        self.serial = 1
 
         # Time controls and times remaining.
         self.white_time_control = None
@@ -138,11 +138,11 @@ class GthClient(object):
         if msg_code == 101:
             self.get_time_controls(msg_text)
             if side == "white":
-                self.my_time = white_time_control
-                self.opp_time = black_time_control
+                self.my_time = self.white_time_control
+                self.opp_time = self.black_time_control
             else:
-                self.my_time = black_time_control
-                self.opp_time = white_time_control
+                self.my_time = self.black_time_control
+                self.opp_time = self.white_time_control
 
         
         # Wait for the opponent to connect and check that
@@ -234,7 +234,7 @@ class GthClient(object):
             ellipses = " ..."
         else:
             assert False
-        self.send("{}{} {}".format(self.serial + 1, ellipses, pos))
+        self.send("{}{} {}".format(self.serial, ellipses, pos))
 
         # Get an ack from the server.
         msg_code, msg_text = self.get_msg()
@@ -280,11 +280,6 @@ class GthClient(object):
                 "unexpected move status code",
             )
 
-        # Auto-bump the serial if needed since
-        # move was successful.
-        if self.who == "black":
-            self.serial += 1
-
         return True
 
 
@@ -322,7 +317,7 @@ class GthClient(object):
             side = "white"
             self.serial = int(words[0])
             pos = words[2]
-            self.opp_time = int(words[2])
+            self.opp_time = int(words[3])
         else:
             raise ProtocolError(
                 msg_code,
@@ -355,6 +350,8 @@ class GthClient(object):
                 )
             assert False
         elif self.who == "black":
+            # Auto-bump the serial since new turn.
+            self.serial += 1
             if msg_code in {312, 314, 316, 318}:
                 return (True, pos)
             if msg_code in {323, 362}:

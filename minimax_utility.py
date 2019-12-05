@@ -3,7 +3,8 @@ from board import (Board, Move, ILLEGAL_MOVE, CONTINUE,
 
 class MinimaxUtility(Board):
 
-  def __init__(self, 
+  def __init__(self,
+               side,
                eval_method="number", 
                scoring={
                  'stone': 1,
@@ -22,6 +23,13 @@ class MinimaxUtility(Board):
                  'serial': 10
                }):
     super().__init__()
+
+    if side == "black":
+      self.side = PLAYER_BLACK
+    elif side == "white":
+      self.side = PLAYER_WHITE
+    else:
+      raise Exception("unexpected side")
 
     # the method for evaluating a board
     self.evaluate_method = eval_method
@@ -45,20 +53,27 @@ class MinimaxUtility(Board):
       evaluation = self.eval
 
     def number():
-      return self.__evaluate_number()
+      score_number = self.__evaluate_number() * evaluation['stone']
+      if self.side == PLAYER_WHITE:
+        return -score_number
+      return score_number
     
     def connected():
       nc_black, nc_white = self.__evaluate_connected()
-      return (self.__evaluate_number() * evaluation['stone'] 
-              + nc_black * evaluation['black connection'] 
-              - nc_white * evaluation['white connection']) 
+      score_connected = (nc_black * evaluation['black connection'] 
+                         - nc_white * evaluation['white connection'])
+      if self.side == PLAYER_WHITE:
+        return -score_connected
+      return score_connected
     
     def eyes():
       ne_black, ne_white = self.__evaluate_eye()
-      return (self.__evaluate_number() * evaluation['stone'] 
-              + ne_black * evaluation['black eye'] 
-              - ne_white * evaluation['white eye'])  
-
+      score_eyes = (ne_black * evaluation['black eye'] 
+                    - ne_white * evaluation['white eye']) 
+      if self.side == PLAYER_WHITE:
+        return -score_eyes
+      return score_eyes
+              
     if self.evaluate_method == "number":
       return number()
 
@@ -159,34 +174,26 @@ class MinimaxUtility(Board):
     if not moves: # no possible moves
       return None
 
-    to_pop = []
+    if self.evaluate_method == "number":
+      return moves
+
     to_pop_connected = []
 
     for i in range(len(moves)):
       if not moves[i].is_pass:
         x, y = moves[i].x, moves[i].y
         assert x >= 0 and x <= 4 and y >= 0 and y <= 4
-
-        if self.evaluate_method == "number":
-          if self.__around_stone(x, y, PLAYER_WHITE):
-            to_pop.append(i)
-
-        elif (self.evaluate_method == "connected" 
+        if (self.evaluate_method == "connected" 
               or self.evaluate_method == "connected eye"):
           if self.__is_connected(moves[i]):
             to_pop_connected.append(i)
-
         else:
           raise Exception("unexpected evaluate methode in minimax")
 
     new_moves = []
-
-    # add moves that around opponent and preserve connection first
-    to_pop = to_pop_connected + to_pop
-
-    for i in to_pop:
+    for i in to_pop_connected:
       new_moves.append(moves[i])
-    for i in sorted(to_pop, reverse=True):
+    for i in sorted(to_pop_connected, reverse=True):
       del moves[i]
 
     # add rest of the moves
@@ -200,7 +207,7 @@ class MinimaxUtility(Board):
     return [move for move in moves if not self.__detect_opponent_eye(move)]
 
   def __detect_opponent_eye(self, move):
-    assert not move.is_pass 
+    assert not move.is_pass
 
     count = 0
     x, y = move.x, move.y
@@ -215,34 +222,17 @@ class MinimaxUtility(Board):
       count += 1
     if y == 0 or y == 4:
       count += 1
-    if x > 0 and self.board[x - 1][y] == PLAYER_WHITE:
+    if x > 0 and self.board[x - 1][y] == self.opponent(self.to_move):
       count += 1
-    if x < 4 and self.board[x + 1][y] == PLAYER_WHITE:
+    if x < 4 and self.board[x + 1][y] == self.opponent(self.to_move):
       count += 1
-    if y > 0 and self.board[x][y - 1] == PLAYER_WHITE:
+    if y > 0 and self.board[x][y - 1] == self.opponent(self.to_move):
       count += 1
-    if y < 4 and self.board[x][y + 1] == PLAYER_WHITE:
+    if y < 4 and self.board[x][y + 1] == self.opponent(self.to_move):
       count += 1
 
     if count >= 3:
       return True
-    return False
-
-  def __around_stone(self, x, y, side):
-    # decide whether there exists stone with color "side" around (x, y)
-    assert x >= 0 and x <= 4 and y >= 0 and y <= 4
-    if x > 0:
-      if self.board[x - 1][y] == side:
-        return True
-    if x < 4:
-      if self.board[x + 1][y] == side:
-        return True
-    if y > 0:
-      if self.board[x][y - 1] == side:
-        return True
-    if y < 4:
-      if self.board[x][y + 1] == side:
-        return True 
     return False
 
   def __is_connected(self, move):

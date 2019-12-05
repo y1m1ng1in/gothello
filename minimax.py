@@ -22,6 +22,7 @@ class TerminationException(Exception):
 class Minimax(MinimaxUtility):
 
   def __init__(self, 
+               side,
                depth=3, 
                prune=False, 
                max_visited=10000, 
@@ -46,11 +47,14 @@ class Minimax(MinimaxUtility):
                print_leaves=False, 
                print_stats=False):
 
-    super().__init__(eval_method=eval_method, 
+    super().__init__(side, 
+                     eval_method=eval_method, 
                      scoring=scoring, 
                      dynamic_eval=dynamic_eval,
                      auto_adjust_scoring=auto_adjust_scoring)
+    
     self.depth = depth
+
     self.prune = prune
     self.alpha = None
     self.beta = None
@@ -87,7 +91,7 @@ class Minimax(MinimaxUtility):
     return self.minimax()
 
   def minimax(self):
-    assert self.to_move == PLAYER_BLACK
+    assert self.to_move == self.side
     if self.depth < 0:
       raise Exception("depth error at entry point of minimax")
     moves = self.gen_moves()
@@ -101,7 +105,7 @@ class Minimax(MinimaxUtility):
     return moves[i]
 
   def __min_value(self, board, depth):
-    assert board.to_move == PLAYER_WHITE
+    assert board.to_move == board.opponent(board.side)
     if depth <= 0:
       return board.evaluate() # reach upper bound of depth
     val, _ = self.__terminal_status(board)
@@ -117,7 +121,7 @@ class Minimax(MinimaxUtility):
     return min(values)
 
   def __max_value(self, board, depth):
-    assert board.to_move == PLAYER_BLACK
+    assert board.to_move == board.side
     if depth <= 0:
       return board.evaluate() # reach upper bound of depth
     val, _ = self.__terminal_status(board)
@@ -168,33 +172,16 @@ class Minimax(MinimaxUtility):
 
   def __alpha_beta_max_value(self, board, depth):
     self.nvisited += 1  # increment visisted node
-    if self.nvisited >= self.max_visited:
-      # terminate searching when maximum number of node visited has been reached
-      if self.iter_deepening:
-        raise TerminationException(
-          code=ITER_DEEPENING_EXCEPTION, 
-          msg="iterative deepening resource exhausted")
+    self.__reach_max_visited()  # if reached, raise termination exception
 
     if depth <= 0:
-      if self.print_leaves:
-        print("depth at 0:\n" + str(board))
-      if self.serial >= self.eval_adjusted['serial']:
-        return board.evaluate(adjust=True), None
-      return board.evaluate(), None
+      return self.__reach_max_depth(board)
 
     # generate all possible moves
-    moves = board.gen_moves()
-    if self.reorder_move:
-      moves = board.move_ordering(moves)
-    if self.selective_search:
-      moves = board.avoid_opponent_eye(moves)
+    moves = self.__generate_moves(board)
 
     if not moves: # no possible move currently, return board's evaluated value
-      if self.print_leaves:
-        print("depth at 0:\n" + str(board))
-      if self.serial >= self.eval_adjusted['serial']:
-        return board.evaluate(adjust=True), None
-      return board.evaluate(), None
+      return self.__handle_no_move(board)
 
     v = -999999
     move_candidates = []
@@ -228,32 +215,15 @@ class Minimax(MinimaxUtility):
 
   def __alpha_beta_min_value(self, board, depth):
     self.nvisited += 1  # increment visisted node
-    if self.nvisited >= self.max_visited:
-      # terminate searching when maximum number of node visited has been reached
-      if self.iter_deepening:
-        raise TerminationException(
-          code=ITER_DEEPENING_EXCEPTION,
-          msg="iterative deepening resource exhausted")
+    self.__reach_max_visited()
 
     if depth <= 0:
-      if self.print_leaves:
-        print("depth at 0:\n" + str(board))
-      if self.serial >= self.eval_adjusted['serial']:
-        return board.evaluate(adjust=True), None
-      return board.evaluate(), None
+      return self.__reach_max_depth(board)
 
-    moves = board.gen_moves()
-    if self.reorder_move:
-      moves = board.move_ordering(moves)
-    if self.selective_search:
-      moves = board.avoid_opponent_eye(moves)
+    moves = self.__generate_moves(board)
 
     if not moves:
-      if self.print_leaves:
-        print("depth at 0:\n" + str(board))
-      if self.serial >= self.eval_adjusted['serial']:
-        return board.evaluate(adjust=True), None
-      return board.evaluate(), None
+      return self.__handle_no_move(board)
 
     v = 999999
     move_candidates = []
@@ -290,11 +260,45 @@ class Minimax(MinimaxUtility):
     b.update_connected_stones()
     return b
 
+  def __generate_moves(self, board):
+    moves = board.gen_moves()
+    if self.reorder_move:
+      moves = board.move_ordering(moves)
+    if self.selective_search:
+      moves = board.avoid_opponent_eye(moves)
+    return moves 
+
+  def __handle_no_move(self, board):
+    if self.print_leaves:
+      print("depth at 0:\n" + str(board))
+    # whether use adjusted evaluation method is decided by the serial number 
+    # on the server side, rather than the current serial number during searching
+    if self.serial >= self.eval_adjusted['serial']:
+      return board.evaluate(adjust=True), None
+    return board.evaluate(), None
+
   def __terminal_status(self, board):
     if board.game_status == GAME_OVER:
-      if board.referee() == PLAYER_BLACK:
+      if board.referee() == board.side:
         return 999999, None
       else:
         return -999999, None
     else:
       return None, None
+
+  def __reach_max_depth(self, board):
+    if self.print_leaves:
+        print("depth at 0:\n" + str(board))
+    # whether use adjusted evaluation method is decided by the serial number 
+    # on the server side
+    if self.serial >= self.eval_adjusted['serial']: 
+      return board.evaluate(adjust=True), None
+    return board.evaluate(), None
+
+  def __reach_max_visited(self):
+    if self.nvisited >= self.max_visited:
+      # terminate searching when maximum number of node visited has been reached
+      if self.iter_deepening:
+        raise TerminationException(
+          code=ITER_DEEPENING_EXCEPTION, 
+          msg="iterative deepening resource exhausted")

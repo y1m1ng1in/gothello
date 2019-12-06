@@ -82,36 +82,42 @@ class Gothelo:
     return False
 
 
-client = gthclient.GthClient("black", "barton.cs.pdx.edu", 0)
+def main():
+  client = gthclient.GthClient("black", "barton.cs.pdx.edu", 0)
 
-scoring = {
-            'stone': 0,
-            'black connection': 1,
-            'white connection': 1,
-            'black eye': 6,
-            'white eye': 3
-          }
+  scoring = {
+              'stone': 0,
+              'black connection': 1,
+              'white connection': 1,
+              'black eye': 6,
+              'white eye': 3
+            }
 
-auto_adjust_scoring = {
-                        'stone': 10,
-                        'black connection': 0,
-                        'white connection': 0,
-                        'black eye': 0,
-                        'white eye': 0,
-                        'serial': 8
-                      }
+  auto_adjust_scoring = {
+                          'stone': 10,
+                          'black connection': 0,
+                          'white connection': 0,
+                          'black eye': 0,
+                          'white eye': 0,
+                          'serial': 8
+                        }
 
-method = Minimax("black",
-                 depth=3,
-                 prune=True, 
-                 move_ordering=True,
-                 selective_search=True,
-                 eval_method="connected eye",
-                 scoring=scoring,
-                 dynamic_eval=True,
-                 auto_adjust_scoring=auto_adjust_scoring,
-                 iter_deepening=True, 
-                 max_visited=3000)
+  method = Minimax("black",
+                   depth=3,
+                   prune=True, 
+                   move_ordering=True,
+                   selective_search=True,
+                   eval_method="connected eye",
+                   scoring=scoring,
+                   dynamic_eval=True,
+                   auto_adjust_scoring=auto_adjust_scoring,
+                   iter_deepening=True, 
+                   max_visited=3000)
 
-game = Gothelo(method, client, side="black")
-game.play()
+  game = Gothelo(method, client, side="black")
+  game.play()
+  game.client.closeall()
+
+
+if __name__ == "__main__":
+  main()

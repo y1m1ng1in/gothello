@@ -17,22 +17,28 @@ class Gothelo:
   def play(self):
     print("*** game start ***\n" + str(self.board))
     while(True):
-      if self.side == "black":
-        if self.__make_my_move():
-          break
-        print(self.board)
-        if self.__get_move():
-          break
-        print(self.board)
-      elif self.side == "white":
-        if self.__get_move():
-          break
-        print(self.board)
-        if self.__make_my_move():
-          break
-        print(self.board)
-      else:
-        raise Exception("error side")
+      try:
+        if self.side == "black":
+          if self.__make_my_move():
+            break
+          print(self.board)
+          if self.__get_move():
+            break
+          print(self.board)
+        elif self.side == "white":
+          if self.__get_move():
+            break
+          print(self.board)
+          if self.__make_my_move():
+            break
+          print(self.board)
+        else:
+          raise Exception("error side")
+      except gthclient.MoveError as e:
+        # current python client library didn't offer a way to 
+        # handle game drawn, thus manually print out result
+        if e.cause == 3 and e.message == 'game terminated early':
+          print("game drawn")
 
   def __make_my_move(self):
     if self.client.winner:
@@ -83,14 +89,14 @@ class Gothelo:
 
 
 def main():
-  client = gthclient.GthClient("black", "barton.cs.pdx.edu", 0)
+  client = gthclient.GthClient("black", "localhost", 0)
 
   scoring = {
-              'stone': 0,
+              'stone': 2,
               'black connection': 1,
               'white connection': 1,
               'black eye': 6,
-              'white eye': 3
+              'white eye': 6
             }
 
   auto_adjust_scoring = {
@@ -99,7 +105,7 @@ def main():
                           'white connection': 0,
                           'black eye': 0,
                           'white eye': 0,
-                          'serial': 8
+                          'serial': 9
                         }
 
   method = Minimax("black",
@@ -112,7 +118,7 @@ def main():
                    dynamic_eval=True,
                    auto_adjust_scoring=auto_adjust_scoring,
                    iter_deepening=True, 
-                   max_visited=3000)
+                   max_visited=7000)
 
   game = Gothelo(method, client, side="black")
   game.play()

@@ -126,9 +126,7 @@ class MinimaxUtility(Board):
     nwhite = self.__count_eye(PLAYER_WHITE)
     return len(nblack), len(nwhite)
 
-  def __count_eye(self, side):
-    eye_coords = set()
-
+  def __check_eye(self, x, y, side):
     def check(x, y):
       if x < 0 or x > 4 or y < 0 or y > 4:
         return 0
@@ -136,16 +134,20 @@ class MinimaxUtility(Board):
         return 1
       else:
         return -1
+    if (check(x - 1, y) != -1
+        and check(x + 1, y) != -1
+        and check(x, y - 1) != -1
+        and check(x, y + 1) != -1):
+      return True 
+    return False
 
+  def __count_eye(self, side):
+    eye_coords = set()
     for i in range(5):
       for j in range(5):
         if self.board[i][j] == 0:
-          if (check(i - 1, j) != -1
-              and check(i + 1, j) != -1
-              and check(i, j - 1) != -1
-              and check(i, j + 1) != -1):
+          if self.__check_eye(i, j, side):
             eye_coords.add((i, j))
-    
     return eye_coords
 
   def update_connected_stones(self):  
@@ -203,8 +205,43 @@ class MinimaxUtility(Board):
 
   def avoid_opponent_eye(self, moves):
     if not moves:
-      return []
-    return [move for move in moves if not self.__detect_opponent_eye(move)]
+      return [], []
+
+    def check_my_eye(x, y):
+      if self.__check_eye(x, y, self.to_move):
+        return True
+      return False
+
+    result = set()
+    remained = set()
+    for move in moves:
+      added = False
+      if self.__detect_opponent_eye(move):
+        x, y = move.x, move.y
+        self.board[x][y] = self.to_move # move to (x,y) temporarily
+        if x > 0 and self.board[x - 1][y] != self.to_move:
+          if check_my_eye(x - 1, y):
+            result.add(move)
+            added = True
+        if x < 4 and self.board[x + 1][y] != self.to_move:
+          if check_my_eye(x + 1, y):
+            result.add(move)
+            added = True
+        if y > 0 and self.board[x][y - 1] != self.to_move:
+          if check_my_eye(x, y - 1):
+            result.add(move)
+            added = True
+        if y < 4 and self.board[x][y + 1] != self.to_move:
+          if check_my_eye(x, y + 1):
+            result.add(move)
+            added = True 
+        if not added:
+          remained.add(move)
+        self.board[x][y] = 0  # recover to original value
+      else:
+        result.add(move)
+    
+    return list(result), list(remained)
 
   def __detect_opponent_eye(self, move):
     assert not move.is_pass

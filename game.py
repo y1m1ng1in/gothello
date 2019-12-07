@@ -39,6 +39,7 @@ class Gothelo:
         # handle game drawn, thus manually print out result
         if e.cause == 3 and e.message == 'game terminated early':
           print("game drawn")
+          break
 
   def __make_my_move(self):
     if self.client.winner:
@@ -92,20 +93,20 @@ def main():
   client = gthclient.GthClient("black", "localhost", 0)
 
   scoring = {
-              'stone': 2,
-              'black connection': 1,
-              'white connection': 1,
-              'black eye': 6,
-              'white eye': 6
+              'stone': 0,
+              'black connection': 0,
+              'white connection': 0,
+              'black eye': 4,
+              'white eye': 4
             }
 
   auto_adjust_scoring = {
-                          'stone': 10,
+                          'stone': 2,
                           'black connection': 0,
                           'white connection': 0,
                           'black eye': 0,
                           'white eye': 0,
-                          'serial': 9
+                          'serial': 10
                         }
 
   method = Minimax("black",
@@ -118,7 +119,8 @@ def main():
                    dynamic_eval=True,
                    auto_adjust_scoring=auto_adjust_scoring,
                    iter_deepening=True, 
-                   max_visited=7000)
+                   max_visited=3000,
+                   print_stats=True)
 
   game = Gothelo(method, client, side="black")
   game.play()

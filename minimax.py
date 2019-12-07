@@ -87,7 +87,8 @@ class Minimax(MinimaxUtility):
     if self.prune and self.iter_deepening:
       return self.alpha_beta_minimax_iter_deepening()
     if self.prune:
-      return self.alpha_beta_minimax()
+      m, _ = self.alpha_beta_minimax()
+      return m
     return self.minimax()
 
   def minimax(self):
@@ -138,10 +139,10 @@ class Minimax(MinimaxUtility):
 
   def alpha_beta_minimax(self, depth=None):
     if depth:
-      _, move = self.__alpha_beta_max_value(self, depth)
+      v, move = self.__alpha_beta_max_value(self, depth)
     else:
-      _, move = self.__alpha_beta_max_value(self, self.depth)
-    return move
+      v, move = self.__alpha_beta_max_value(self, self.depth)
+    return move, v
 
   def alpha_beta_minimax_iter_deepening(self):
     self.nvisited = 0
@@ -151,8 +152,12 @@ class Minimax(MinimaxUtility):
     # at most 25 depth, since there are only 25 stones on board
     while self.nvisited < self.max_visited and depth <= 25:
       try:
-        move = self.alpha_beta_minimax(depth=depth)
+        self.alpha = -999999
+        self.beta = 999999
+        move, v = self.alpha_beta_minimax(depth=depth)
         last_depth_move = move
+        if v == 999999:
+          break
         depth += 1
         if not move:
           break
@@ -175,6 +180,9 @@ class Minimax(MinimaxUtility):
     self.__reach_max_visited()  # if reached, raise termination exception
 
     if depth <= 0:
+      print("\nmax depth <= 0 -------")
+      print(board)
+      print("-------\n")
       return self.__reach_max_depth(board)
 
     # generate all possible moves
@@ -186,10 +194,16 @@ class Minimax(MinimaxUtility):
     v = -999999
     move_candidates = []
 
+    # test
+    vs = []
+
     for m in moves:
       b = self.__board_after_moving(board, m) # generate new board after move -- m
       v_child, _ = self.__alpha_beta_min_value(b, depth - 1)  # search recursively
-      
+
+      # test
+      vs.append(v_child)
+
       if v_child > v:
         # update maximum value, when child's value is larger
         v = v_child
@@ -198,19 +212,25 @@ class Minimax(MinimaxUtility):
         # if child's value is same as current maximum value, append it to the move candidate list
         move_candidates.append(m)
       
+      self.alpha = max(self.alpha, v)
+
       if v >= self.beta:
         if move_candidates:
           pick_move = random.randint(0, len(move_candidates) - 1)
+          # test
+          print("max pruned", " beta:", self.beta, " vs:", vs, " returned:", v)
           return v, move_candidates[pick_move]
         else:
+          print("no candidates in max")
           return v, m
       
-      self.alpha = max(self.alpha, v)
+      #self.alpha = max(self.alpha, v)
     
     assert move_candidates
 
     # randomly pick a move from all possible move candidates
     pick_move = random.randint(0, len(move_candidates) - 1) 
+    print("max       ", " beta:", self.beta, " vs:", vs, " returned:", v)
     return v, move_candidates[pick_move]
 
   def __alpha_beta_min_value(self, board, depth):
@@ -218,6 +238,9 @@ class Minimax(MinimaxUtility):
     self.__reach_max_visited()
 
     if depth <= 0:
+      print("\nmin depth <= 0 -------")
+      print(board)
+      print("-------\n")
       return self.__reach_max_depth(board)
 
     moves = self.__generate_moves(board)
@@ -228,9 +251,15 @@ class Minimax(MinimaxUtility):
     v = 999999
     move_candidates = []
 
+    # test purpose
+    vs = []
+
     for m in moves:
       b = self.__board_after_moving(board, m)
       v_child, _ = self.__alpha_beta_max_value(b, depth - 1)
+
+      # test
+      vs.append(v_child)
 
       if v_child < v:
         v = v_child
@@ -238,18 +267,24 @@ class Minimax(MinimaxUtility):
       elif v_child == v:
         move_candidates.append(m)
 
+      self.beta = min(self.beta, v)
+
       if v <= self.alpha: 
         if move_candidates:
           pick_move = random.randint(0, len(move_candidates) - 1)
           assert pick_move < len(move_candidates) and pick_move >= 0
+          # test
+          print("min pruned", " alpha:", self.alpha, " vs:", vs, " returned:", v)
           return v, move_candidates[pick_move]
         else:
+          print("no candidates in min")
           return v, m
 
-      self.beta = min(self.beta, v)
+      #self.beta = min(self.beta, v)
     
     assert move_candidates
     pick_move = random.randint(0, len(move_candidates) - 1)
+    print("min       ", " alpha:", self.alpha, " vs:", vs, " returned:", v) 
     return v, move_candidates[pick_move]
   
   def __board_after_moving(self, board, move):
@@ -265,17 +300,24 @@ class Minimax(MinimaxUtility):
     if self.reorder_move:
       moves = board.move_ordering(moves)
     if self.selective_search:
-      moves = board.avoid_opponent_eye(moves)
-    return moves 
+      moves, avoided = board.avoid_opponent_eye(moves)
+    return moves + avoided
 
   def __handle_no_move(self, board):
     if self.print_leaves:
       print("depth at 0:\n" + str(board))
-    # whether use adjusted evaluation method is decided by the serial number 
-    # on the server side, rather than the current serial number during searching
-    if self.serial >= self.eval_adjusted['serial']:
-      return board.evaluate(adjust=True), None
-    return board.evaluate(), None
+    result = self.__handle_game_over(board) 
+    if result == -1:
+      if board.serial >= board.eval_adjusted['serial']:
+        return board.evaluate(adjust=True), None
+      return board.evaluate(), None
+    else:
+      if result == self.side:
+        return 999999, None
+      elif result == self.opponent(self.side):
+        return -999999, None
+      else:
+        return 0, None
 
   def __terminal_status(self, board):
     if board.game_status == GAME_OVER:
@@ -291,7 +333,7 @@ class Minimax(MinimaxUtility):
         print("depth at 0:\n" + str(board))
     # whether use adjusted evaluation method is decided by the serial number 
     # on the server side
-    if self.serial >= self.eval_adjusted['serial']: 
+    if board.serial >= board.eval_adjusted['serial']: 
       return board.evaluate(adjust=True), None
     return board.evaluate(), None
 
@@ -302,3 +344,11 @@ class Minimax(MinimaxUtility):
         raise TerminationException(
           code=ITER_DEEPENING_EXCEPTION, 
           msg="iterative deepening resource exhausted")
+  
+  def __handle_game_over(self, board):
+    moves = board.gen_moves()
+    print("in handle game over", moves)
+    if not moves:
+      return board.referee()
+    else:
+      return -1

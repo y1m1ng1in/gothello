@@ -219,8 +219,8 @@ class Board:
     return CONTINUE
 
   def referee(self):
-    if self.game_status != GAME_OVER:
-      raise Exception("internal error: referee unfinished game")
+    #if self.game_status != GAME_OVER:
+    #  raise Exception("internal error: referee unfinished game")
     
     nblack, nwhite = 0, 0
     for i in range(5):

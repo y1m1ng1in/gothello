@@ -39,24 +39,13 @@ class AlphaBetaPruning(MinimaxUtility):
                  'black connection': 1,
                  'white connection': 2
                },
-               dynamic_eval=False,
-               auto_adjust_scoring={
-                 'stone': 1,
-                 'black connection': 3,
-                 'white connection': 3,
-                 'black eye': 1,
-                 'white eye': 1,
-                 'serial': 10
-               },
                print_leaves=False, 
                print_stats=False,
                print_move_lists=False):
           
     super().__init__(side, 
                      eval_method=eval_method, 
-                     scoring=scoring, 
-                     dynamic_eval=dynamic_eval,
-                     auto_adjust_scoring=auto_adjust_scoring)
+                     scoring=scoring)
 
     self.depth = depth
 
@@ -111,7 +100,7 @@ class AlphaBetaPruning(MinimaxUtility):
 
     for move in moves:
       b = AlphaBetaPruning.board_after_moving(board, move)
-      p = copy.deepcopy(path)
+      p = [m for m in path]
       p.append(move)
       opp_value, _ = self.__min_value(b, depth - 1, alpha, beta, p)
       if opp_value > value:
@@ -140,7 +129,7 @@ class AlphaBetaPruning(MinimaxUtility):
 
     for move in moves:
       b = AlphaBetaPruning.board_after_moving(board, move)
-      p = copy.deepcopy(path)
+      p = [m for m in path]
       p.append(move)
       my_value, _ = self.__max_value(b, depth - 1, alpha, beta, p)
       if my_value < value:
@@ -199,8 +188,6 @@ class AlphaBetaPruning(MinimaxUtility):
     Evaluate a board based on serial number of server side, and whether 
     dynamic_eval flag is enabled. 
     """
-    if self.dynamic_eval and board.serial >= board.eval_adjusted['serial']:
-      return board.evaluate(adjust=True)
     return board.evaluate()
 
   def __generate_moves(self, board, depth=None):

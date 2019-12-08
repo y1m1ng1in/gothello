@@ -63,6 +63,16 @@ class Move:
     else:
       return "pass"
 
+  def __eq__(self, other):
+    if (self.x == other.x 
+        and self.y == other.y 
+        and self.is_pass == other.is_pass):
+      return True
+    return False
+
+  def __hash__(self):
+    return hash(tuple([self.x, self.y, self.is_pass]))
+
 
 class Board:
 

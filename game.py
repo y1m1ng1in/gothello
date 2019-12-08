@@ -6,6 +6,7 @@ import gthclient
 
 from board import Board, Move, ILLEGAL_MOVE, CONTINUE, GAME_OVER
 from minimax import Minimax
+from alphabetapruning import AlphaBetaPruning
 
 class Gothelo:
 
@@ -93,7 +94,7 @@ def main():
   client = gthclient.GthClient("black", "localhost", 0)
 
   scoring = {
-              'stone': 0,
+              'stone': 1,
               'black connection': 0,
               'white connection': 0,
               'black eye': 4,
@@ -101,7 +102,7 @@ def main():
             }
 
   auto_adjust_scoring = {
-                          'stone': 2,
+                          'stone': 1,
                           'black connection': 0,
                           'white connection': 0,
                           'black eye': 0,
@@ -109,6 +110,7 @@ def main():
                           'serial': 10
                         }
 
+  """
   method = Minimax("black",
                    depth=3,
                    prune=True, 
@@ -121,6 +123,17 @@ def main():
                    iter_deepening=True, 
                    max_visited=3000,
                    print_stats=True)
+  """
+
+  method = AlphaBetaPruning("black",
+                            depth=3, 
+                            move_ordering=False,
+                            selective_search=False,
+                            eval_method="number",
+                            scoring=scoring,
+                            dynamic_eval=False,
+                            auto_adjust_scoring=auto_adjust_scoring,
+                            print_stats=False)
 
   game = Gothelo(method, client, side="black")
   game.play()

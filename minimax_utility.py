@@ -9,18 +9,18 @@ class MinimaxUtility(Board):
                scoring={
                  'stone': 1,
                  'black connection': 1,
-                 'white connection': 2,
-                 'black eye': 3,
-                 'white eye': 3
+                 'white connection': 1,
+                 'black eye': 1,
+                 'white eye': 1
                },
                dynamic_eval=False,
                auto_adjust_scoring={
                  'stone': 1,
-                 'black connection': 3,
-                 'white connection': 3,
+                 'black connection': 1,
+                 'white connection': 1,
                  'black eye': 1,
                  'white eye': 1,
-                 'serial': 10
+                 'serial': 13
                }):
     super().__init__()
 

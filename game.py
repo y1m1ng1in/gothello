@@ -126,7 +126,9 @@ def main():
   """
 
   method = AlphaBetaPruning("black",
-                            depth=3, 
+                            depth=4,
+                            iterdeepening=True,
+                            maximum_visited=3000, 
                             move_ordering=False,
                             selective_search=False,
                             eval_method="number",

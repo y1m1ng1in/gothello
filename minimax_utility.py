@@ -35,8 +35,8 @@ class MinimaxUtility(Board):
     self.evaluate_method = eval_method
 
     # a set of connected stones
-    self.connected_black = set()
-    self.connected_white = set()
+    #self.connected_black = set()
+    #self.connected_white = set()
 
     # value for scoring board
     self.eval = scoring
@@ -57,7 +57,7 @@ class MinimaxUtility(Board):
       if self.side == PLAYER_WHITE:
         return -score_number
       return score_number
-    
+    """
     def connected():
       nc_black, nc_white = self.__evaluate_connected()
       score_connected = (nc_black * evaluation['black connection'] 
@@ -65,7 +65,7 @@ class MinimaxUtility(Board):
       if self.side == PLAYER_WHITE:
         return -score_connected
       return score_connected
-    
+    """
     def eyes():
       ne_black, ne_white = self.__evaluate_eye()
       score_eyes = (ne_black * evaluation['black eye'] 
@@ -78,13 +78,15 @@ class MinimaxUtility(Board):
       return number()
 
     elif self.evaluate_method == "connected":
-      return number() + connected()
+      #return number() + connected()
+      return number()
 
     elif self.evaluate_method == "eye":
       return number() + eyes()
 
     elif self.evaluate_method == "connected eye":
-      return number() + connected() + eyes()
+      #return number() + connected() + eyes()
+      return number() + eyes()
 
     else:
       raise Exception("unexpected evaluate method in minimax")
@@ -98,7 +100,7 @@ class MinimaxUtility(Board):
         elif stone == PLAYER_WHITE:
           score -= 1
     return score
-
+  """
   def __evaluate_connected(self): 
     nblack = self.__count_maximum_connected_group(self.connected_black, PLAYER_BLACK)
     nwhite = self.__count_maximum_connected_group(self.connected_white, PLAYER_WHITE) 
@@ -120,7 +122,7 @@ class MinimaxUtility(Board):
             count += 1
       maximum = max(maximum, count)
     return maximum
-
+  """
   def __evaluate_eye(self):
     nblack = self.__count_eye(PLAYER_BLACK)
     nwhite = self.__count_eye(PLAYER_WHITE)
@@ -149,7 +151,8 @@ class MinimaxUtility(Board):
           if self.__check_eye(i, j, side):
             eye_coords.add((i, j))
     return eye_coords
-
+  
+  """
   def update_connected_stones(self):  
     # update connected stones every time after try_move(), 
     # and before making decision
@@ -171,14 +174,16 @@ class MinimaxUtility(Board):
           connected.add((i, j))
           connected.add((i + 1, j))
     return connected
-     
+  """
+
   def move_ordering(self, moves):
-    if not moves: # no possible moves
-      return None
+    #if not moves: # no possible moves
+    #  return None
 
-    if self.evaluate_method == "number":
-      return moves
-
+    #if self.evaluate_method == "number":
+    #  return moves
+  
+    """
     to_pop_connected = []
 
     for i in range(len(moves)):
@@ -202,6 +207,9 @@ class MinimaxUtility(Board):
     new_moves += moves
 
     return new_moves
+    """
+
+    return moves
 
   def avoid_opponent_eye(self, moves):
     if not moves:
@@ -271,7 +279,7 @@ class MinimaxUtility(Board):
     if count >= 3:
       return True
     return False
-
+  """
   def __is_connected(self, move):
     assert (move 
             and move.x >= 0 
@@ -288,3 +296,4 @@ class MinimaxUtility(Board):
           (x == stone[0] and y + 1 == stone[1])):
         return True
     return False
+  """

@@ -128,14 +128,14 @@ def main():
   method = AlphaBetaPruning("black",
                             depth=4,
                             iterdeepening=True,
-                            maximum_visited=3000, 
+                            maximum_visited=4000, 
                             move_ordering=False,
                             selective_search=False,
                             eval_method="number",
                             scoring=scoring,
                             dynamic_eval=False,
                             auto_adjust_scoring=auto_adjust_scoring,
-                            print_stats=False)
+                            print_stats=True)
 
   game = Gothelo(method, client, side="black")
   game.play()

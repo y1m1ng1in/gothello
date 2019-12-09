@@ -50,7 +50,7 @@ class Gothelo:
     move = self.board.decision()
     if not move:
       move = Move(0, 0, is_pass=True)
-    result = self.board.try_move(move)
+    result, _ = self.board.try_move(move)
     if result == ILLEGAL_MOVE:
       raise Exception("illegal move")
     
@@ -81,7 +81,7 @@ class Gothelo:
       return True
 
     move = Move.parse_string(move)
-    result = self.board.try_move(move)
+    result, _ = self.board.try_move(move)
     if result == ILLEGAL_MOVE:
       raise Exception("illegal move when receiving from server")
     if result == GAME_OVER:
@@ -91,17 +91,17 @@ class Gothelo:
 
 
 def main():
-  client = gthclient.GthClient("black", "localhost", 0)
+  client = gthclient.GthClient("white", "localhost", 0)
 
   scoring = {
               'stone': 1,
               'black connection': 0,
               'white connection': 0,
-              'black eye': 4,
-              'white eye': 4
+              'black eye': 1,
+              'white eye': 1
             }
 
-  method = AlphaBetaPruning("black",
+  method = AlphaBetaPruning("white",
                             depth=4,
                             iterdeepening=True,
                             maximum_visited=4000, 
@@ -111,7 +111,7 @@ def main():
                             scoring=scoring,
                             print_stats=True)
 
-  game = Gothelo(method, client, side="black")
+  game = Gothelo(method, client, side="white")
   game.play()
   game.client.closeall()
 

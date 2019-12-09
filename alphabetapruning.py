@@ -1,5 +1,6 @@
 import copy
 import random
+import uuid
 
 from board import (Board, Move, ILLEGAL_MOVE, CONTINUE, 
   GAME_OVER, PLAYER_BLACK, PLAYER_WHITE)
@@ -56,6 +57,7 @@ class AlphaBetaPruning(MinimaxUtility):
     # test-purpse -- how many states have been visited
     self.nvisited = 0 
     self.npruned = 0
+    self.nttablehit = 0
 
     # recorded best path during searching
     self.move_path = [None, []]
@@ -72,11 +74,19 @@ class AlphaBetaPruning(MinimaxUtility):
     # whether ignore move that is near opponent's eye
     self.selective_search = selective_search
 
+    # hash key for transposition table, this will be 
+    # manually updated after try_move() being called 
+    self.zobrist_key = 0
+
   def decision(self):
-    self.nvisited, self.npruned = 0, 0
+    self.nvisited, self.npruned, self.nttablehit = 0, 0, 0
     self.move_path = [None, []]
+    zobrist_table = AlphaBetaPruning.init_zobrist_table()
+    transposition = {}
     if not self.iterdeepening:
-      _, move = self.__max_value(self, self.depth, -inf, inf, [])
+      _, move = self.__max_value(self, self.depth, -inf, inf, [], 
+                                 transposition=transposition,
+                                 zobrist_table=zobrist_table)
       self.__print_stats()
       self.__print_moves(print_move_paths)
       self.__generate_killer_moves(self.depth)
@@ -86,7 +96,8 @@ class AlphaBetaPruning(MinimaxUtility):
       self.stop_deepening = False
       return self.__iter_deepening()
 
-  def __max_value(self, board, depth, alpha, beta, path):
+  def __max_value(self, board, depth, alpha, beta, path, 
+                  transposition=None, zobrist_table=None):
     self.nvisited += 1
     value, moves = self.__terminal_test(board, depth)
     if value != None and not moves: # end recursion
@@ -95,14 +106,38 @@ class AlphaBetaPruning(MinimaxUtility):
 
     assert value == None and moves
  
+    if transposition != None:
+      if board.zobrist_key in transposition: 
+        self.nttablehit += 1
+        value = transposition[board.zobrist_key] 
+        self.__update_move_path(path, value, is_max=True)
+        return value, None
+
     value = -inf
     move_candidates = []  # my move candidates that have same eval value 
 
     for move in moves:
-      b = AlphaBetaPruning.board_after_moving(board, move)
+      b = AlphaBetaPruning.board_after_moving(board, move, 
+                                              zobrist_table=zobrist_table)
+      
       p = [m for m in path]
       p.append(move)
-      opp_value, _ = self.__min_value(b, depth - 1, alpha, beta, p)
+      
+      opp_value, _ = self.__min_value(b, depth - 1, alpha, beta, p, 
+                                      transposition=transposition, 
+                                      zobrist_table=zobrist_table)
+
+      if transposition != None:
+        #if b.zobrist_key in transposition:
+        #  print(b, b.zobrist_key, transposition[b.zobrist_key])
+        #assert b.zobrist_key not in transposition
+        #print("add into ttable", b.zobrist_key, opp_value)
+        #print(b)
+        if b.zobrist_key in transposition:
+          assert opp_value == transposition[b.zobrist_key]
+        else:
+          transposition[b.zobrist_key] = opp_value
+
       if opp_value > value:
         value = opp_value
         move_candidates = [move]
@@ -115,23 +150,45 @@ class AlphaBetaPruning(MinimaxUtility):
 
     return value, AlphaBetaPruning.random_pick_move(move_candidates)
 
-  def __min_value(self, board, depth, alpha, beta, path):
+  def __min_value(self, board, depth, alpha, beta, path, 
+                  transposition=None, zobrist_table=None):
     self.nvisited += 1
     value, moves = self.__terminal_test(board, depth)
-    if value and not moves: # end recursion
+    if value != None and not moves: # end recursion
       self.__update_move_path(path, value, is_max=True)
       return value, None 
     
-    assert not value and moves
+    assert value == None and moves
+
+    if transposition != None:
+      if board.zobrist_key in transposition:
+        self.nttablehit += 1
+        value = transposition[board.zobrist_key] 
+        self.__update_move_path(path, value, is_max=False)
+        return value, None
 
     value = inf
     move_candidates = []
 
     for move in moves:
-      b = AlphaBetaPruning.board_after_moving(board, move)
+      b = AlphaBetaPruning.board_after_moving(board, move, 
+                                              zobrist_table=zobrist_table)
+
       p = [m for m in path]
       p.append(move)
-      my_value, _ = self.__max_value(b, depth - 1, alpha, beta, p)
+
+      my_value, _ = self.__max_value(b, depth - 1, alpha, beta, p,
+                                     transposition=transposition, 
+                                     zobrist_table=zobrist_table)
+
+      if transposition != None:
+        #assert b.zobrist_key not in transposition
+        #transposition[b.zobrist_key] = my_value
+        if b.zobrist_key in transposition:
+          assert my_value == transposition[b.zobrist_key]
+        else:
+          transposition[b.zobrist_key] = my_value
+
       if my_value < value:
         value = my_value
         move_candidates = [move]
@@ -228,19 +285,48 @@ class AlphaBetaPruning(MinimaxUtility):
     return moves[pick_move]
 
   @staticmethod
-  def board_after_moving(board, move):
+  def board_after_moving(board, move, zobrist_table=None):
     """
-    Deepcopy a board(i.e. AlphaBetaPruning object), and try move
+    Deepcopy a board(i.e. AlphaBetaPruning object), and try move,
+    and manually update Zobrist hash value for new board
     :param board: AlphaBetaPruning object
     :param move: Move object
-    :return: AlphaBetaPruning object after trying move
+    :param zobrist_table: a zobrist table with initialized value, 
+                          or None if not specified 
+    :return: AlphaBetaPruning object after trying move, with new 
+             zobrist hash key
     """
+    # deep copy current state
     b = copy.deepcopy(board)
-    result = b.try_move(move)
+    
+    # save original to_move, since try_move will change to_move to 
+    # opponent side
+    orig_to_move, orig_opp = b.to_move, b.opponent(b.to_move) 
+    
+    result, captured = b.try_move(move)
     if result == ILLEGAL_MOVE:
       raise Exception("illegal move in minimax")
-    #b.update_connected_stones()
+    
+    # now update Zobrist hash key manually
+    if zobrist_table:
+      for x, y in captured:
+        # xor OUT original opponent side stone
+        b.zobrist_key ^= zobrist_table[x][y][orig_opp - 1]
+        # xor IN original to_move side stone
+        b.zobrist_key ^= zobrist_table[x][y][orig_to_move - 1]
+      # xor IN original new stone (original to_move side)
+      b.zobrist_key ^= zobrist_table[move.x][move.y][orig_to_move - 1]
+    
     return b
+
+  @staticmethod
+  def init_zobrist_table():
+    table = [[[0 for _ in range(2)] for _ in range(5)] for _ in range(5)]
+    for x in range(5):
+      for y in range(5):
+        for side in range(2):
+          table[x][y][side] = uuid.uuid4().int 
+    return table
 
   def __iter_deepening(self):
     """
@@ -250,11 +336,15 @@ class AlphaBetaPruning(MinimaxUtility):
     """
     depth = 1
     stored_move = None
-
+    zobrist_table = AlphaBetaPruning.init_zobrist_table()
+    
     while self.nvisited < self.maximum_visited and depth <= 25:
       try:
+        transposition = {}
         self.move_path = [None, []]
-        _, move = self.__max_value(self, depth, -inf, inf, [])
+        _, move = self.__max_value(self, depth, -inf, inf, [], 
+                                   transposition=transposition, 
+                                   zobrist_table=zobrist_table)
         stored_move = move
         self.__print_moves(print_move_paths)
         self.__generate_killer_moves(depth)
@@ -277,6 +367,7 @@ class AlphaBetaPruning(MinimaxUtility):
     if self.print_stats:
       print("number of states visited: ", self.nvisited - 1)
       print("number of returned by pruning: ", self.npruned)
+      print("number of states hit ttable: ", self.nttablehit)
 
   def __print_moves(self, which):
     if self.print_stats and self.print_move_lists:

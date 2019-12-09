@@ -173,52 +173,80 @@ class Board:
     return False
     
   def capture(self, x, y):
+    """
+    Attempt to capture opponent stones.
+    :return: a set of stone coords captured
+    """
     if self.liberties(x, y) > 0:
-      return 
+      return set() 
+    captured = set()
     scratch = self.scratch_board()
     self.flood(scratch, self.board[x][y], x, y)
     for i in range(5):
       for j in range(5):
         if scratch[i][j]:
           self.board[i][j] = self.to_move
+          captured.add((x, y))
+    return captured
 
   def do_captures(self, move):
+    """
+    Captures opponent stones based on move argument
+    :return: a set of stone coords captured
+    """
+    captured = set()
     if move.x > 0 and self.board[move.x - 1][move.y] == self.opponent(self.to_move):
-      self.capture(move.x - 1, move.y)
+      captured |= self.capture(move.x - 1, move.y)
     if move.x < 4 and self.board[move.x + 1][move.y] == self.opponent(self.to_move):
-      self.capture(move.x + 1, move.y)
+      captured |= self.capture(move.x + 1, move.y)
     if move.y > 0 and self.board[move.x][move.y - 1] == self.opponent(self.to_move):
-      self.capture(move.x, move.y - 1)
+      captured |= self.capture(move.x, move.y - 1)
     if move.y < 4 and self.board[move.x][move.y + 1] == self.opponent(self.to_move):
-      self.capture(move.x, move.y + 1)
+      captured |= self.capture(move.x, move.y + 1)
+    return captured
 
   def make_move(self, move):
+    """
+    Make a move on the current board based on the argument move,
+    and do captures
+    :param move: a Move object
+    :return: a set of stone coords captured
+    """
     self.previous_move = move
     if move.is_pass:
       return 
     self.board[move.x][move.y] = self.to_move
-    self.do_captures(move)
+    captured = self.do_captures(move)
+    if (move.x, move.y) in captured:
+      captured.remove((move.x, move.y))
+    return captured
 
   def try_move(self, move, debug=False):
+    """
+    Try move based on argument move.
+    :return: a flag indicates whether game should continue,
+             and a set of stone coords captured if any
+    """
     if debug:
       print("entering try_move()")
 
     if self.game_status != CONTINUE:
       if debug:
         print("leaving try_move(): move after game over")
-      return ILLEGAL_MOVE
+      return ILLEGAL_MOVE, None
     if move.is_pass and self.previous_move and self.previous_move.is_pass:
       self.game_status = GAME_OVER
       if debug:
         print("leaving try_move(): game over")
-      return GAME_OVER
+      return GAME_OVER, None
     if not self.move_ok(move):
       if debug:
         print("leaving try_move(): illegal move")
-      return ILLEGAL_MOVE
+      return ILLEGAL_MOVE, None
     if debug:
       print("move ok")
-    self.make_move(move)
+
+    captured = self.make_move(move)
 
     self.to_move = self.opponent(self.to_move)
     if self.to_move == PLAYER_BLACK:
@@ -226,7 +254,7 @@ class Board:
     
     if debug:
       print("leaving try_move(): continue game")
-    return CONTINUE
+    return CONTINUE, captured
 
   def referee(self):
     #if self.game_status != GAME_OVER:

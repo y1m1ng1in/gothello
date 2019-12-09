@@ -91,27 +91,25 @@ class Gothelo:
 
 
 def main():
-  client = gthclient.GthClient("white", "localhost", 0)
+  client = gthclient.GthClient("black", "localhost", 0)
 
   scoring = {
               'stone': 1,
-              'black connection': 0,
-              'white connection': 0,
               'black eye': 1,
               'white eye': 1
             }
 
-  method = AlphaBetaPruning("white",
+  method = AlphaBetaPruning("black",
                             depth=4,
                             iterdeepening=True,
                             maximum_visited=4000, 
                             move_ordering=False,
                             selective_search=False,
-                            eval_method="number",
+                            eval_method="eye",
                             scoring=scoring,
                             print_stats=True)
 
-  game = Gothelo(method, client, side="white")
+  game = Gothelo(method, client, side="black")
   game.play()
   game.client.closeall()
 

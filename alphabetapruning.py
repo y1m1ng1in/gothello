@@ -342,7 +342,7 @@ class AlphaBetaPruning(MinimaxUtility):
       try:
         transposition = {}
         self.move_path = [None, []]
-        _, move = self.__max_value(self, depth, -inf, inf, [], 
+        v, move = self.__max_value(self, depth, -inf, inf, [], 
                                    transposition=transposition, 
                                    zobrist_table=zobrist_table)
         stored_move = move
@@ -351,7 +351,7 @@ class AlphaBetaPruning(MinimaxUtility):
         if self.stop_deepening:
           break
         if self.print_stats:
-          print("at depth: ", depth)
+          print("at depth: ", depth, "value: ", v)
         self.__print_stats()
         self.__print_moves(print_killer_moves)
         depth += 1

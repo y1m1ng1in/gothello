@@ -8,8 +8,6 @@ class MinimaxUtility(Board):
                eval_method="number", 
                scoring={
                  'stone': 1,
-                 'black connection': 1,
-                 'white connection': 1,
                  'black eye': 1,
                  'white eye': 1
                }):

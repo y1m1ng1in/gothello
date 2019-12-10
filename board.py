@@ -145,25 +145,39 @@ class Board:
     return n
 
   def move_ok(self, move):
+    """
+    Check whether a move is valid based on current board.
+    :return: a tuple (boolean, integer)
+             1st element indicates whether move is valid
+             2nd element indicates the number of liberties 
+             if it is valid and not pass; otherwise it is -1
+             or 0.
+    """
     if move.is_pass:
-      return True
+      return (True, -1)
     if self.board[move.x][move.y] != 0:
-      return False
+      return (False, -1)
     self.board[move.x][move.y] = self.to_move    
     n = self.liberties(move.x, move.y)
     self.board[move.x][move.y] = 0
     if n == 0:
-      return False 
-    return True
+      return (False, n)
+    return (True, n)
     
   def gen_moves(self):
+    """
+    Generate all possible moves and store them into a list named 
+    result. Each element of result is a tuple (move, nliberties)
+    :return: a list of tuple
+    """
     result = []
     for i in range(5):
       for j in range(5):
         if self.board[i][j] == 0:
           m = Move(i, j)
-          if self.move_ok(m):
-            result.append(m)
+          is_valid, nlib = self.move_ok(m)
+          if is_valid:
+            result.append((m, nlib))
     return result
 
   def has_moves(self):
@@ -239,7 +253,7 @@ class Board:
       if debug:
         print("leaving try_move(): game over")
       return GAME_OVER, None
-    if not self.move_ok(move):
+    if not self.move_ok(move)[0]:
       if debug:
         print("leaving try_move(): illegal move")
       return ILLEGAL_MOVE, None

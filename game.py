@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
 import random
+import argparse
 
 import gthclient
 
 from board import Board, Move, ILLEGAL_MOVE, CONTINUE, GAME_OVER
-#from minimax import Minimax
 from alphabetapruning import AlphaBetaPruning
 
 class Gothelo:
@@ -91,25 +91,111 @@ class Gothelo:
 
 
 def main():
-  client = gthclient.GthClient("black", "localhost", 0)
+  sides = [
+    "black",
+    "white"
+  ]
 
+  eval_methods = [
+    "number",
+    "eye"
+  ]
+
+  parser = argparse.ArgumentParser(description='gothello')
+
+  parser.add_argument('--side',  
+                      '-s',
+                      type=str,
+                      choices=sides, 
+                      default=sides[0], 
+                      help="choose a side to play")
+
+  parser.add_argument('--depth',
+                      '-d',
+                      type=int,
+                      default=4,
+                      help="depth limitation for minimax search \
+                            , not applied to iter deepening")
+
+  parser.add_argument('--evaluate',
+                      '-e',
+                      type=str,
+                      choices=eval_methods,
+                      default=eval_methods[0],
+                      help="choose a static evaluate function: (1)\
+                            \"number\" counts number of stones on each side; (2)\
+                            \"eye\" counts number of eyes and stones on each side")
+
+  parser.add_argument('--stonescore',
+                      '-S',
+                      type=int,
+                      default=1,
+                      help="assign a score for stone")
+
+  parser.add_argument('--blackeyescore',
+                      '-b',
+                      type=int,
+                      default=1,
+                      help="assign a score for black eye")
+
+  parser.add_argument('--whiteeyescore',
+                      '-w',
+                      type=int,
+                      default=1,
+                      help="assign a score for white eye")
+
+  parser.add_argument('--iterdeepening',
+                      '-i',
+                      action='store_true',
+                      help="enable iterative deepening \
+                            default maximum number of states \
+                            to visit is 12000")
+
+  parser.add_argument('--moveselection',
+                      '-M',
+                      action='store_true',
+                      help="select move with the largest liberties \
+                            when multiple moves with same evalutated\
+                            score encountered")
+
+  parser.add_argument('--maxnstate',
+                      '-m',
+                      type=int,
+                      default=10000,
+                      help="assign a number for maximum number \
+                            of states to visit in iterative deepening")
+
+  parser.add_argument('--stats',
+                      action='store_true',
+                      help="enable printing states info")
+
+  args = parser.parse_args()
+
+  side = args.side
+  depth = args.depth
+  eval_function = args.evaluate
   scoring = {
-              'stone': 1,
-              'black eye': 1,
-              'white eye': 1
+              'stone': args.stonescore,
+              'black eye': args.blackeyescore,
+              'white eye': args.whiteeyescore
             }
+  iterdeepening = args.iterdeepening
+  maximum_visit = args.maxnstate
+  move_selection = args.moveselection
+  print_stats = args.stats
 
-  method = AlphaBetaPruning("black",
-                            depth=4,
-                            iterdeepening=True,
-                            maximum_visited=4000, 
-                            move_ordering=False,
-                            selective_search=False,
-                            eval_method="eye",
+  client = gthclient.GthClient(side, "localhost", 0)
+
+  method = AlphaBetaPruning(side,
+                            depth=depth,
+                            iterdeepening=iterdeepening,
+                            maximum_visited=maximum_visit, 
+                            eval_method=eval_function,
                             scoring=scoring,
-                            print_stats=True)
+                            move_selection=move_selection,
+                            print_stats=print_stats)
 
-  game = Gothelo(method, client, side="black")
+  game = Gothelo(method, client, side=side)
   game.play()
   game.client.closeall()
 

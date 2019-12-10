@@ -41,6 +41,12 @@ class Gothelo:
         if e.cause == 3 and e.message == 'game terminated early':
           print("game drawn")
           break
+      except gthclient.ProtocolError as e:
+        # python library doesn't handle game draw, so manually 
+        # handle it here
+        if e.expression == 325 or e.expression == 326:
+          print("game drawn")
+          break
 
   def __make_my_move(self):
     if self.client.winner:
@@ -65,6 +71,12 @@ class Gothelo:
       if e.cause == e.ILLEGAL:
         print("me: made illegal move, passing")
         self.client.make_move("pass")
+    except gthclient.ProtocolError as e:
+      # python library doesn't handle game draw, so manually 
+      # handle it here
+      if e.expression == 325 or e.expression == 326:
+        print("game drawn")
+        return True
 
     return False
 

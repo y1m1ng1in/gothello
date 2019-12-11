@@ -161,7 +161,7 @@ def main():
                       action='store_true',
                       help="enable iterative deepening \
                             default maximum number of states \
-                            to visit is 12000")
+                            to visit is 1000")
 
   parser.add_argument('--moveselection',
                       '-M',
@@ -173,7 +173,7 @@ def main():
   parser.add_argument('--maxnstate',
                       '-m',
                       type=int,
-                      default=10000,
+                      default=1000,
                       help="assign a number for maximum number \
                             of states to visit in iterative deepening")
 

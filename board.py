@@ -1,3 +1,7 @@
+# this file is completely adapted from CS441 course repo:
+# https://github.com/pdx-cs-ai/gothello-gthd/blob/master/Board.java
+# I translated the Java code to Python code
+
 PLAYER_BLACK = 1  
 PLAYER_WHITE = 2
 OBSERVER = 3

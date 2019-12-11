@@ -1,0 +1,480 @@
+Evaluation function: only count number of each side stones
+
+9/10
+python3 game.py -s black --iterdeepening -m 1000 --stats --moveselection
+java Grossthello white localhost 0 3
+
+. O O O * 
+O O O * * 
+O * * * * 
+* * * * * 
+. * * * * 
+winner:  black
+
+* * * . O 
+* * * * * 
+* * * * * 
+* * * * * 
+* * * * * 
+winner:  black
+
+* * * * . 
+* * * * O 
+* * * * * 
+* * * * * 
+* * * * * 
+winner:  black
+
+* * * * * 
+* * * * * 
+O O * * O 
+. O * * O 
+O O * * . 
+winner:  black
+
+O * * * * 
+. * * * * 
+O O O * * 
+O * * * * 
+O * * * * 
+winner:  black
+
+. O * * * 
+* * * * * 
+* * * * * 
+* * * * * 
+* * * * * 
+winner:  black
+
+O O . O O 
+O O O O O 
+O O O O O 
+O O O O O 
+O O O O O 
+winner:  white
+
+* * * * * 
+* * * * * 
+* * * * * 
+. * * * * 
+O * * * * 
+winner:  black
+
+O . O * * 
+* * * * * 
+* * * * * 
+* * * * * 
+* * * * * 
+winner:  black
+
+O O * * . 
+O * * * * 
+O O * * * 
+. O * * * 
+O * * * * 
+winner:  black
+
+
+
+8/10
+python3 game.py -s white --iterdeepening -m 1000 --stats --moveselection
+java Grossthello black localhost 0 3
+
+* . O O O 
+* O O O O 
+O O O O O 
+O O O O O 
+O O O O O 
+winner:  white
+
+O O O O O 
+O O O O O 
+O O O O O 
+O O O O O 
+O O O O . 
+winner:  white
+
+O O . * * 
+O * * * * 
+O O O O O 
+* * O O * 
+* * * * . 
+winner:  black
+
+O O O O O 
+O O O O O 
+O O O O O 
+O O O O O 
+O O O O . 
+winner:  white
+
+. O * * . 
+* O O O * 
+O * * O O 
+O * * O O 
+. * * O O 
+winner:  white
+
+. O O O O 
+O O O O O 
+O O O O O 
+O O O O O 
+O O O O O 
+winner:  white
+
+. * O O O 
+O O O O O 
+O O O O O 
+O O O O O 
+O O O O O 
+winner:  white
+
+* * O O O 
+. * * O O 
+* * * O O 
+* O O O O 
+* O . O O 
+winner:  white
+
+O O O O O 
+O O O O O 
+O O O * * 
+O O O O * 
+O O O O . 
+winner:  white
+
+. * O * . 
+* * O O O 
+* O O * * 
+* O O O * 
+O O * * . 
+game drawn
+
+
+
+
+
+
+
+
+
+
+4/10
+java Gthd 0
+java Grossthello black localhost 0 3
+python3 game.py -s white --iterdeepening -m 1000 --stats
+
+O * * * * 
+. O * * . 
+O O O O * 
+* O * O * 
+* * * * * 
+winner:  black
+
+* * * * * 
+* O . * * 
+* * * * * 
+* * * * * 
+* * * * * 
+winner:  black
+
+O O . O O 
+O O O O O 
+O O O * * 
+O O * * . 
+O O * * * 
+winner:  white
+
+O O O O O 
+O O O O O 
+O O O O O 
+* * O O O 
+. * * O . 
+winner:  white
+
+* * * * * 
+* * * * * 
+* * * * * 
+. * * * * 
+O O * * * 
+winner:  black
+
+. * * O O 
+* * * O O 
+O * * O O 
+O O O O O 
+. O O O O 
+winner:  white
+
+O O O O O 
+O O O O O 
+O O O O O 
+O O O O O 
+. O O O O 
+winner:  white
+
+* * * . O 
+* * * * * 
+O O * O * 
+. O * O * 
+* O O O O 
+winner:  black
+
+* * * O O 
+* * * * O 
+* * * O O 
+* * * . * 
+* * * O O 
+winner:  black
+
+* O O O O 
+* O O . O 
+* O O O * 
+* * * O * 
+* * . * * 
+winner:  black
+
+
+7/10
+java Gthd 0
+java Grossthello white localhost 0 3
+python3 game.py -s black --iterdeepening -m 1000 --stats
+
+* * * * * 
+* * * * * 
+* * . * * 
+* * * * * 
+* * * * * 
+winner:  black
+
+* O O O O 
+* * * O O 
+. * O O O 
+O * O O O 
+O O O O O 
+winner:  white
+
+* * * * O 
+* * * O O 
+* * * * O 
+O * * O O 
+. O * * . 
+winner:  black
+
+O O * * . 
+O * * * * 
+O O O O O 
+O O O O O 
+. O O O O 
+winner:  white
+
+* * * * * 
+* * * * * 
+* * * * * 
+* * * * * 
+* * * * . 
+winner:  black
+
+* * * * * 
+* * * * * 
+* * * * * 
+. * * * * 
+O * * * * 
+winner:  black
+
+* * * O . 
+* O * * O 
+* O O O O 
+* * O O O 
+. * * * O 
+winner:  black
+
+* * * O O 
+* * * O . 
+* * * * O 
+* . * O O 
+* * * O O 
+winner:  black
+
+* * O . O 
+* . * O O 
+* O * * O 
+O O * * O 
+O O O * O 
+winner:  white
+
+O O * * * 
+O O * * * 
+O * * * * 
+. O O * . 
+O O O O * 
+winner:  black
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Evaluation function: count number of stones and eyes
+
+8/10
+java Gthd 0
+java Grossthello white localhost 0 3
+python3 game.py -s black --iterdeepening -m 1000 --stats -e eye
+
+. * * * * 
+* * * * * 
+O * O * O 
+O O O O O 
+O * . O O 
+winner:  black
+
+* * * * * 
+* * * * * 
+* * * * * 
+. * * * * 
+* * * * * 
+winner:  black
+
+. * * * * 
+* * * * * 
+* * * * * 
+* * * * * 
+* * * * * 
+winner:  black
+
+* * * * * 
+* * * * * 
+* * * * * 
+* * * * * 
+* * * * . 
+winner:  black
+
+O O O O O 
+O * . O O 
+O O O O O 
+O O O O O 
+O O O O O 
+winner:  white
+
+* * O O O 
+* O O O . 
+. * * O O 
+* * * * O 
+* * * * * 
+winner:  black
+
+* * * * * 
+* * * * * 
+. * * * * 
+* * * * * 
+* * * * * 
+winner:  black
+
+* * * * * 
+* * * * * 
+. * * * * 
+* * * * * 
+* * * * * 
+winner:  black
+
+. * * * * 
+* * * * * 
+* * * * * 
+* * * * * 
+* * * * * 
+winner:  black
+
+O . O O O 
+O O * O O 
+O * * * * 
+* O * * * 
+. O O * . 
+winner:  white
+
+
+2/10
+java Gthd 0
+java Grossthello black localhost 0 3
+python3 game.py -s white --iterdeepening -m 1000 --stats -e eye
+
+* * * * * 
+* * * * * 
+. * * * * 
+* * * * * 
+* * * * * 
+winner:  black
+
+* * O . O 
+* * * O O 
+* O O O O 
+* * * * * 
+* * * O . 
+winner:  black
+
+. * * * * 
+* * O O * 
+* O O . O 
+* * O O O 
+* O O O O 
+winner:  white
+
+* * * * * 
+O O * . * 
+O O * * * 
+O O O * * 
+. O * * * 
+winner:  black
+
+O O O O . 
+* O O * O 
+* * * * O 
+* * * * O 
+O . * O O 
+winner:  white
+
+* * * * * 
+* . * * * 
+O O O O O 
+* O O * O 
+* * * . * 
+winner:  black
+
+. * * * * 
+* * * O * 
+O O * O * 
+O O O O * 
+O O . O * 
+winner:  black
+
+* * O O O 
+* . * O O 
+* * * * O 
+* * O O . 
+* * O O O 
+winner:  black
+
+* * . * * 
+* * * * * 
+* * * * * 
+* * * * * 
+* * * * * 
+winner:  black
+
+* * * * * 
+* * * * . 
+* * * * * 
+* * * * * 
+* * * * * 
+winner:  black
